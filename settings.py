@@ -1,3 +1,4 @@
+from pygame.math import Vector2 as vec
 # Taille screen
 WIDTH, HEIGHT = 610, 670
 FPS = 60
@@ -7,13 +8,17 @@ MAZE_WIDTH, MAZE_HEIGHT = WIDTH-TOP_BOTTOM_BUFFER, HEIGHT-TOP_BOTTOM_BUFFER
 
 # Couleurs
 BLACK = (0,0,0)
+RED = (255, 0, 0)
 BLUE = (0,0,255)
 GREY  = (107,107,107)
+WHITE = (255,255,255)
+PLAYER_COLOUR = (190, 194 ,12 )
 
 # Font
 START_TEXT_SIZE = 16
 START_FONT = 'arial_black'
 
 # Joueurs
+PLAYER_START_POS = vec(1,1)
 
 # IA
