@@ -15,10 +15,13 @@ class App:
         self.state = 'start'
         self.cell_width = MAZE_WIDTH//28
         self.cell_height = MAZE_HEIGHT//30
-        self.player = Player(self,PLAYER_START_POS)
         self.walls = []
+        self.coins = []
+        self.p_pos = None
         
         self.load()
+        self.player = Player(self, self.p_pos)
+
         
     def run(self):
         while self.running:
@@ -60,21 +63,33 @@ class App:
                 for xidx, char in enumerate(line):
                     if char == "1":
                         self.walls.append(vec(xidx , yidx))
-        print(len(self.walls))
+                    elif char == "C":
+                        self.coins.append(vec(xidx, yidx))
+                    elif char == "P":
+                        self.p_pos =vec(xidx,yidx)
+        # print(len(self.walls))
+    
         
     # Grillage du jeu
     def draw_grid(self):
+        # les cellules grises
         for x in range(WIDTH//self.cell_width):
             pygame.draw.line(self.background, GREY, (x*self.cell_width , 0), ( x*self.cell_width, HEIGHT))
     
         for x in range(HEIGHT//self.cell_height):
             pygame.draw.line(self.background, GREY, (0 , x*self.cell_height), ( WIDTH, x*self.cell_height))
         
-        for wall in self.walls:
-            pygame.draw.rect(self.background, (112,55,163), (wall.x * self.cell_width, 
-                                                             wall.y * self.cell_height,
-                                                             self.cell_width,
-                                                             self.cell_height))    
+        
+        # for wall in self.walls:
+        #     pygame.draw.rect(self.background, (112,55,163), (wall.x * self.cell_width, 
+        #                                                      wall.y * self.cell_height,
+        #                                                      self.cell_width,
+        #                                                      self.cell_height))    
+        # for coin in self.coins:
+        #     pygame.draw.rect(self.background, YELLOW, (coin.x * self.cell_width, 
+        #                                                      coin.y * self.cell_height,
+        #                                                      self.cell_width,
+        #                                                      self.cell_height))    
 
 
 
@@ -125,9 +140,24 @@ class App:
     
     def playing_draw(self):
         self.screen.fill(BLACK)
+        # affiche l'image de la map
         self.screen.blit(self.background, (TOP_BOTTOM_BUFFER//2, TOP_BOTTOM_BUFFER//2))
-        # self.draw_grid()
-        self.draw_text('CURRENT SCORE : 0', self.screen, [25,2], 12 , WHITE, START_FONT)
-        self.draw_text('HIGH SCORE : 0', self.screen, [WIDTH//2,2], 12 , WHITE, START_FONT)
+        
+        self.draw_grid()
+        self.draw_coins()
+        
+        # affiche HUD
+        self.draw_text("CURRENT SCORE : {}".format(self.player.current_score), self.screen, [25,2], START_TEXT_SIZE , WHITE, START_FONT)
+        self.draw_text('HIGH SCORE : 0', self.screen, [WIDTH//2,2], START_TEXT_SIZE , WHITE, START_FONT)
+        # affiche le joueur
         self.player.draw()
-        pygame.display.update()  
+        pygame.display.update()
+        
+    # crée les pieces
+    def draw_coins(self):
+        for coin in self.coins:
+            pygame.draw.circle(self.screen, 
+                               GREEN, 
+                               (int(coin.x*self.cell_width) + self.cell_width//2 + TOP_BOTTOM_BUFFER//2,
+                                int( coin.y*self.cell_height)+ self.cell_height//2 + TOP_BOTTOM_BUFFER//2),
+                               3)
