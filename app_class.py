@@ -2,9 +2,11 @@ import sys
 import pygame
 from settings import *
 from player_class import *
+from enemy_class import *
 
-
+# initialise tuos les modules pygames importés
 pygame.init()
+# Vecteur 2D
 vec = pygame.math.Vector2
 
 class App:
@@ -17,10 +19,13 @@ class App:
         self.cell_height = MAZE_HEIGHT//30
         self.walls = []
         self.coins = []
+        self.enemies = []
+        self.e_pos = []
         self.p_pos = None
         
         self.load()
         self.player = Player(self, self.p_pos)
+        self.make_enemies()
 
         
     def run(self):
@@ -67,8 +72,18 @@ class App:
                         self.coins.append(vec(xidx, yidx))
                     elif char == "P":
                         self.p_pos =vec(xidx,yidx)
+                    elif char in ["2","3","4","5"]:
+                        self.e_pos.append(vec(xidx,yidx))
+                    elif char == "B":
+                        pygame.draw.rect(self.background, BLACK, (xidx * self.cell_width, yidx * self.cell_height, self.cell_width, self.cell_height))
         # print(len(self.walls))
     
+    def make_enemies(self):
+        # self.enemies.append(Enemy())
+        for idx, pos in enumerate(self.e_pos) :
+            self.enemies.append(Enemy(self,pos, idx))
+            print('enemy spawned')
+            
         
     # Grillage du jeu
     def draw_grid(self):
@@ -104,8 +119,10 @@ class App:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 self.state = 'playing'
     
+    
     def start_update(self):
         pass       
+    
     
     def start_draw(self):
         self.screen.fill(BLACK)
@@ -137,13 +154,16 @@ class App:
     
     def playing_update(self):
         self.player.update()
+        for enemy in self.enemies:
+            # print(enemy)
+            enemy.update()
     
     def playing_draw(self):
         self.screen.fill(BLACK)
         # affiche l'image de la map
         self.screen.blit(self.background, (TOP_BOTTOM_BUFFER//2, TOP_BOTTOM_BUFFER//2))
         
-        self.draw_grid()
+        # self.draw_grid()
         self.draw_coins()
         
         # affiche HUD
@@ -151,6 +171,11 @@ class App:
         self.draw_text('HIGH SCORE : 0', self.screen, [WIDTH//2,2], START_TEXT_SIZE , WHITE, START_FONT)
         # affiche le joueur
         self.player.draw()
+        
+        # dessinne les enemies
+        for enemy in self.enemies:
+            enemy.draw() 
+            
         pygame.display.update()
         
     # crée les pieces
