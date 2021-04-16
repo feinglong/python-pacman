@@ -24,7 +24,8 @@ class App:
         self.p_pos = None
         
         self.load()
-        self.player = Player(self, self.p_pos)
+        # self.player = Player(self, self.p_pos)
+        self.player = Player(self, vec(self.p_pos))
         self.make_enemies()
 
         
@@ -38,6 +39,10 @@ class App:
                 self.playing_events()
                 self.playing_update()
                 self.playing_draw()
+            elif self.state == 'game over':
+                self.game_over_events()
+                self.game_over_update()
+                self.game_over_draw()
             else:
                 pass
             self.clock.tick(FPS)
@@ -71,9 +76,9 @@ class App:
                     elif char == "C":
                         self.coins.append(vec(xidx, yidx))
                     elif char == "P":
-                        self.p_pos =vec(xidx,yidx)
+                        self.p_pos = [xidx,yidx]
                     elif char in ["2","3","4","5"]:
-                        self.e_pos.append(vec(xidx,yidx))
+                        self.e_pos.append([xidx, yidx])
                     elif char == "B":
                         pygame.draw.rect(self.background, BLACK, (xidx * self.cell_width, yidx * self.cell_height, self.cell_width, self.cell_height))
         # print(len(self.walls))
@@ -81,7 +86,7 @@ class App:
     def make_enemies(self):
         # self.enemies.append(Enemy())
         for idx, pos in enumerate(self.e_pos) :
-            self.enemies.append(Enemy(self,pos, idx))
+            self.enemies.append(Enemy(self, vec(pos), idx))
             print('enemy spawned')
             
         
@@ -95,17 +100,32 @@ class App:
             pygame.draw.line(self.background, GREY, (0 , x*self.cell_height), ( WIDTH, x*self.cell_height))
         
         
-        # for wall in self.walls:
-        #     pygame.draw.rect(self.background, (112,55,163), (wall.x * self.cell_width, 
-        #                                                      wall.y * self.cell_height,
-        #                                                      self.cell_width,
-        #                                                      self.cell_height))    
-        # for coin in self.coins:
-        #     pygame.draw.rect(self.background, YELLOW, (coin.x * self.cell_width, 
-        #                                                      coin.y * self.cell_height,
-        #                                                      self.cell_width,
-        #                                                      self.cell_height))    
+        for wall in self.walls:
+            pygame.draw.rect(self.background, BLUE, (wall.x * self.cell_width, 
+                                                             wall.y * self.cell_height,
+                                                             self.cell_width,
+                                                             self.cell_height))      
 
+     # reset le jeu
+    def reset(self):
+        self.player.lives = 3
+        self.player.current_score = 0
+        self.player.grid_pos = vec(self.player.starting_pos)
+        self.player.pix_pos = self.player.get_pix_pos()
+        self.player.direction *= 0
+        
+        for enemy in self.enemies:
+            enemy.grid_pos = vec(enemy.starting_pos)
+            enemy.pix_pos = enemy.get_pix_pos()
+            enemy.direction *= 0
+        
+        self.coins = []
+        with open('walls.txt',  'r' ) as file :
+            for yidx, line in enumerate(file):
+                for xidx, char in enumerate(line):
+                    if char == 'C':
+                        self.coins.append(vec(xidx, yidx))
+        self.state = "playing"
 
 
 # Fonctions intro
@@ -118,6 +138,8 @@ class App:
             # si le joueur appuie sur la barre espace alors le jeu peut se lancer
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 self.state = 'playing'
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
+                self.running = False
     
     
     def start_update(self):
@@ -128,7 +150,6 @@ class App:
         self.screen.fill(BLACK)
         self.draw_text('PUSH SPACE BAR', self.screen, [WIDTH//2, HEIGHT//2], START_TEXT_SIZE , (170,132,58), START_FONT, centered=True)
         self.draw_text('1 PLAYER ONLY', self.screen, [WIDTH//2, HEIGHT//2+50], START_TEXT_SIZE , (44,167,195), START_FONT,  centered=True)
-        self.draw_text('HIGH SCORE', self.screen, [4,0], 12 , WHITE, START_FONT)
         pygame.display.update()     
         
 
@@ -150,6 +171,8 @@ class App:
                     self.player.move(vec(1,0))
                 if event.key == pygame.K_DOWN:
                     self.player.move(vec(0,1))
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
+                self.running = False
             
     
     def playing_update(self):
@@ -157,18 +180,21 @@ class App:
         for enemy in self.enemies:
             # print(enemy)
             enemy.update()
+            
+        for enemy in self.enemies:
+            if enemy.grid_pos == self.player.grid_pos:
+                self.remove_life()
     
     def playing_draw(self):
         self.screen.fill(BLACK)
         # affiche l'image de la map
         self.screen.blit(self.background, (TOP_BOTTOM_BUFFER//2, TOP_BOTTOM_BUFFER//2))
         
-        # self.draw_grid()
+        self.draw_grid()
         self.draw_coins()
         
         # affiche HUD
         self.draw_text("CURRENT SCORE : {}".format(self.player.current_score), self.screen, [25,2], START_TEXT_SIZE , WHITE, START_FONT)
-        self.draw_text('HIGH SCORE : 0', self.screen, [WIDTH//2,2], START_TEXT_SIZE , WHITE, START_FONT)
         # affiche le joueur
         self.player.draw()
         
@@ -178,6 +204,7 @@ class App:
             
         pygame.display.update()
         
+        
     # crée les pieces
     def draw_coins(self):
         for coin in self.coins:
@@ -186,3 +213,45 @@ class App:
                                (int(coin.x*self.cell_width) + self.cell_width//2 + TOP_BOTTOM_BUFFER//2,
                                 int( coin.y*self.cell_height)+ self.cell_height//2 + TOP_BOTTOM_BUFFER//2),
                                3)
+            
+    def remove_life(self):
+        self.player.lives -= 1
+        if self.player.lives == 0:
+            self.state = "game over"
+            # self.running = False
+        else :
+            self.player.grid_pos = vec(self.player.starting_pos)
+            self.player.pix_pos = self.player.get_pix_pos()
+            self.player.direction *= 0
+            
+            for enemy in self.enemies:
+                enemy.grid_pos = vec(enemy.starting_pos)
+                enemy.pix_pos = enemy.get_pix_pos()
+                enemy.direction *= 0
+            
+
+# Fonctions Game Over
+    def game_over_events(self):
+        for event in pygame.event.get():
+            # si le joueur clic sur l'icone fermer alors le jeu quitte
+            if event.type == pygame.QUIT:
+                self.running = False
+            # si le joueur appuie sur la barre espace alors le jeu peut se lancer
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                self.reset()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
+                self.running = False
+    
+    
+    def game_over_update(self):
+        pass       
+    
+    
+    def game_over_draw(self):
+        self.screen.fill(BLACK)
+        self.draw_text('GAME OVER', self.screen, [WIDTH//2, 100], 25 , RED, START_FONT, centered=True)
+        self.draw_text('PUSH SPACE BAR', self.screen, [WIDTH//2, HEIGHT//2], START_TEXT_SIZE , (170,132,58), START_FONT, centered=True)
+
+        
+        pygame.display.update()
+        

@@ -13,6 +13,8 @@ class Player:
         self.able_to_move = True
         self.current_score = 0
         self.speed = 2
+        self.lives = 3
+        self.starting_pos = [pos.x, pos.y]
         
         
         
@@ -43,7 +45,15 @@ class Player:
             (int(self.pix_pos.x), int(self.pix_pos.y)), 
             self.app.cell_width//2 - 2 )
         
-        # # grille possition
+        # vies du joueur
+        for x in range(self.lives):
+            pygame.draw.circle(self.app.screen ,
+                               PLAYER_COLOUR,
+                               (30 + 20*x, 
+                                HEIGHT - 15),
+                                7)
+        
+        ## grille position du joueur
         # pygame.draw.rect(
         #     # surface
         #     self.app.screen,
@@ -72,10 +82,10 @@ class Player:
     
     def time_to_move(self):
         if int(self.pix_pos.x + TOP_BOTTOM_BUFFER // 2) % self.app.cell_width == 0 :
-            if self.direction == vec(1,0) or self.direction == vec(-1, 0):
+            if self.direction == vec(1,0) or self.direction == vec(-1, 0) or self.direction == vec(0,0):
                 return True
         if int(self.pix_pos.y + TOP_BOTTOM_BUFFER//2) % self.app.cell_height == 0 :
-            if self.direction == vec(0,1) or self.direction == vec(0, -1):
+            if self.direction == vec(0,1) or self.direction == vec(0, -1) or self.direction == vec(0,0):
                 return True
             
     def can_move(self):
