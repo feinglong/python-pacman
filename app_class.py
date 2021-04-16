@@ -77,7 +77,8 @@ class App:
                         self.coins.append(vec(xidx, yidx))
                     elif char == "P":
                         self.p_pos = [xidx,yidx]
-                    elif char in ["2","3","4","5"]:
+                    # elif char in ["2","3","4","5"]:
+                    elif char in ["2", "3"]:
                         self.e_pos.append([xidx, yidx])
                     elif char == "B":
                         pygame.draw.rect(self.background, BLACK, (xidx * self.cell_width, yidx * self.cell_height, self.cell_width, self.cell_height))
@@ -87,21 +88,21 @@ class App:
         # self.enemies.append(Enemy())
         for idx, pos in enumerate(self.e_pos) :
             self.enemies.append(Enemy(self, vec(pos), idx))
-            print('enemy spawned')
+            # print('enemy spawned')
             
         
     # Grillage du jeu
     def draw_grid(self):
-        # les cellules grises
-        for x in range(WIDTH//self.cell_width):
-            pygame.draw.line(self.background, GREY, (x*self.cell_width , 0), ( x*self.cell_width, HEIGHT))
+        # # les cellules grises
+        # for x in range(WIDTH//self.cell_width):
+        #     pygame.draw.line(self.background, GREY, (x*self.cell_width , 0), ( x*self.cell_width, HEIGHT))
     
-        for x in range(HEIGHT//self.cell_height):
-            pygame.draw.line(self.background, GREY, (0 , x*self.cell_height), ( WIDTH, x*self.cell_height))
+        # for x in range(HEIGHT//self.cell_height):
+        #     pygame.draw.line(self.background, GREY, (0 , x*self.cell_height), ( WIDTH, x*self.cell_height))
         
         
         for wall in self.walls:
-            pygame.draw.rect(self.background, BLUE, (wall.x * self.cell_width, 
+            pygame.draw.rect(self.background, BLUE_WALL, (wall.x * self.cell_width, 
                                                              wall.y * self.cell_height,
                                                              self.cell_width,
                                                              self.cell_height))      
@@ -148,8 +149,10 @@ class App:
     
     def start_draw(self):
         self.screen.fill(BLACK)
-        self.draw_text('PUSH SPACE BAR', self.screen, [WIDTH//2, HEIGHT//2], START_TEXT_SIZE , (170,132,58), START_FONT, centered=True)
-        self.draw_text('1 PLAYER ONLY', self.screen, [WIDTH//2, HEIGHT//2+50], START_TEXT_SIZE , (44,167,195), START_FONT,  centered=True)
+        
+        self.draw_text('PACMAN', self.screen, [WIDTH//2, HEIGHT//2 - 100], 40 , YELLOW, START_FONT, centered=True)
+        self.draw_text('Space bar to New Game', self.screen, [WIDTH//2, HEIGHT//2], START_TEXT_SIZE , WHITE, START_FONT, centered=True)
+        self.draw_text("Q to Quit", self.screen, [25,HEIGHT-25 ], START_TEXT_SIZE , WHITE, START_FONT)
         pygame.display.update()     
         
 
@@ -171,6 +174,8 @@ class App:
                     self.player.move(vec(1,0))
                 if event.key == pygame.K_DOWN:
                     self.player.move(vec(0,1))
+                if event.key == pygame.K_a:
+                    print(self.walls)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_q:
                 self.running = False
             
@@ -183,7 +188,8 @@ class App:
             
         for enemy in self.enemies:
             if enemy.grid_pos == self.player.grid_pos:
-                self.remove_life()
+                # self.remove_life()
+                self.state = "game over"
     
     def playing_draw(self):
         self.screen.fill(BLACK)
@@ -194,8 +200,10 @@ class App:
         self.draw_coins()
         
         # affiche HUD
-        self.draw_text("CURRENT SCORE : {}".format(self.player.current_score), self.screen, [25,2], START_TEXT_SIZE , WHITE, START_FONT)
+        self.draw_text("SCORE : {}".format(self.player.current_score), self.screen, [25,2], START_TEXT_SIZE , WHITE, START_FONT)
+        self.draw_text("Q to Quit", self.screen, [25,HEIGHT-25 ], START_TEXT_SIZE , WHITE, START_FONT)
         # affiche le joueur
+        
         self.player.draw()
         
         # dessinne les enemies
@@ -214,20 +222,20 @@ class App:
                                 int( coin.y*self.cell_height)+ self.cell_height//2 + TOP_BOTTOM_BUFFER//2),
                                3)
             
-    def remove_life(self):
-        self.player.lives -= 1
-        if self.player.lives == 0:
-            self.state = "game over"
-            # self.running = False
-        else :
-            self.player.grid_pos = vec(self.player.starting_pos)
-            self.player.pix_pos = self.player.get_pix_pos()
-            self.player.direction *= 0
+    # def remove_life(self):
+    #     self.player.lives -= 1
+    #     if self.player.lives == 0:
+    #         self.state = "game over"
+    #         # self.running = False
+    #     else :
+    #         self.player.grid_pos = vec(self.player.starting_pos)
+    #         self.player.pix_pos = self.player.get_pix_pos()
+    #         self.player.direction *= 0
             
-            for enemy in self.enemies:
-                enemy.grid_pos = vec(enemy.starting_pos)
-                enemy.pix_pos = enemy.get_pix_pos()
-                enemy.direction *= 0
+    #         for enemy in self.enemies:
+    #             enemy.grid_pos = vec(enemy.starting_pos)
+    #             enemy.pix_pos = enemy.get_pix_pos()
+    #             enemy.direction *= 0
             
 
 # Fonctions Game Over
@@ -249,8 +257,10 @@ class App:
     
     def game_over_draw(self):
         self.screen.fill(BLACK)
-        self.draw_text('GAME OVER', self.screen, [WIDTH//2, 100], 25 , RED, START_FONT, centered=True)
-        self.draw_text('PUSH SPACE BAR', self.screen, [WIDTH//2, HEIGHT//2], START_TEXT_SIZE , (170,132,58), START_FONT, centered=True)
+        
+        self.draw_text('GAME OVER', self.screen, [WIDTH//2, 100], 40 , RED, START_FONT, centered=True)
+        self.draw_text('Space bar to New Game', self.screen, [WIDTH//2, HEIGHT//2], START_TEXT_SIZE , WHITE, START_FONT, centered=True)
+        self.draw_text("Q to Quit", self.screen, [25,HEIGHT-25 ], START_TEXT_SIZE , WHITE, START_FONT)
 
         
         pygame.display.update()

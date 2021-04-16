@@ -8,12 +8,12 @@ class Player:
         self.app = app
         self.grid_pos = pos
         self.pix_pos = self.get_pix_pos()
-        self.direction = vec(1,0)
+        # self.direction = vec(1,0)
+        self.direction = vec(0,0)
         self.stored_direction = None
         self.able_to_move = True
         self.current_score = 0
         self.speed = 2
-        self.lives = 3
         self.starting_pos = [pos.x, pos.y]
         
         
@@ -45,13 +45,6 @@ class Player:
             (int(self.pix_pos.x), int(self.pix_pos.y)), 
             self.app.cell_width//2 - 2 )
         
-        # vies du joueur
-        for x in range(self.lives):
-            pygame.draw.circle(self.app.screen ,
-                               PLAYER_COLOUR,
-                               (30 + 20*x, 
-                                HEIGHT - 15),
-                                7)
         
         ## grille position du joueur
         # pygame.draw.rect(
